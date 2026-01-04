@@ -8,6 +8,8 @@ app.use(express.json());
 const connectDB=require('./Config/DBConnection');
 connectDB();
 
+app.use('/user',require('./Routes/UserRoutes'));
+
 app.listen(port,()=>{
     console.log(`Server is running on port ${port}`);
 })
