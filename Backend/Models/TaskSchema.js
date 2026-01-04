@@ -38,23 +38,23 @@ const taskSchema=new mongoose.Schema({
 
 
 });
-taskSchema.pre('save',function(next){
+taskSchema.pre('save',function(){
     if (this.startTime && this.endTime) {
         const diffMs = this.endTime - this.startTime;
         this.duration = diffMs > 0 ? Math.floor(diffMs / 60000) : 0;
     }
-    next();
+    
 });
 
 
-taskSchema.pre("findOneAndUpdate", function (next) {
+taskSchema.pre("findOneAndUpdate", function () {
     const update = this.getUpdate();
     if (update.startTime && update.endTime) {
         const diffMs = new Date(update.endTime) - new Date(update.startTime);
         update.duration = diffMs > 0 ? Math.floor(diffMs / 60000) : 0;
         this.setUpdate(update);
     }
-    next();
+    
 });
 
 module.exports=mongoose.model('Tasks',taskSchema);
