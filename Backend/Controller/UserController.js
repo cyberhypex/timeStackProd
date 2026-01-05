@@ -5,7 +5,7 @@ const bcrypt=require('bcrypt')
 const jwt=require('jsonwebtoken')
 
 const userSignUp = async (req, res) => {
-    const { username, email, password, age, gender,avatar } = req.body;
+    const { username, email, password, age, gender } = req.body;
 
     try {
         if (!username || !email || !password) {
@@ -23,6 +23,12 @@ const userSignUp = async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
+        let avatar;
+        if(gender==='FEMALE'){
+            avatar="https://cdn-icons-png.flaticon.com/512/2922/2922561.png"
+        }else{
+            avatar="https://cdn-icons-png.flaticon.com/512/149/149071.png"
+        }
 
         const newUser = await User.create({
             username,
@@ -36,7 +42,7 @@ const userSignUp = async (req, res) => {
         const jwtToken = jwt.sign(
             { userId: newUser._id },
             process.env.JWT_SECRET_KEY,
-            { expiresIn: "1h" }
+            { expiresIn: "7d" }
         );
 
         const { password: _, ...userData } = newUser._doc;
@@ -75,7 +81,7 @@ const userLogin = async (req, res) => {
         const jwtToken = jwt.sign(
             { userId: existingUser._id },
             process.env.JWT_SECRET_KEY,
-            { expiresIn: "24h" }
+            { expiresIn: "7d" }
         );
 
         const { password: _, ...userWithoutPassword } = existingUser.toObject();

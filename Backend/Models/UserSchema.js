@@ -24,16 +24,14 @@ const UserSchema=new mongoose.Schema({
     gender:{
         type:String,
         enum:[Gender.MALE,Gender.FEMALE],
-        default:Gender.MALE
+        default:Gender.MALE,
+        uppercase: true
     },
 
     avatar:{
         type: String,
-        default: function () {
-        return this.gender === Gender.FEMALE
-            ? "https://cdn-icons-png.flaticon.com/512/2922/2922561.png"
-            : "https://cdn-icons-png.flaticon.com/512/149/149071.png";
-        }
+        required:true,
+       
     }
 })
 module.exports=mongoose.model('User',UserSchema);

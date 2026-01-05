@@ -3,10 +3,10 @@ const mongoose=require('mongoose');
 
 
 const createTask = async (req, res) => {
-    console.log("Decoded user:", req.user);
+  //  console.log("Decoded user:", req.user);
 
     const userId = req.user.userId; 
-    console.log("User ID from token:", userId);
+   // console.log("User ID from token:", userId);
 
     const { title, description, type, startTime, endTime } = req.body;
 
@@ -40,7 +40,7 @@ const updateTask = async (req, res) => {
     const taskId = req.params.id;          
     const userId = req.user.userId;        
 
-    console.log("Updating task:", taskId, "for user:", userId);
+   // console.log("Updating task:", taskId, "for user:", userId);
 
     const { title, description, type, startTime, endTime } = req.body;
 
@@ -129,44 +129,46 @@ const getTask=async(req,res)=>{
  }
 
 const getDailyGenreStats = async (req, res) => {
-    try {
-        const userId = req.user.userId;
+  try {
+    const userId = req.user.userId;
 
-        const startOfDay = new Date();
-        startOfDay.setUTCHours(0, 0, 0, 0);
+    const startOfDay = new Date();
+    startOfDay.setUTCHours(0, 0, 0, 0);
 
-        const endOfDay = new Date();
-        endOfDay.setUTCHours(23, 59, 59, 999);
+    const endOfDay = new Date();
+    endOfDay.setUTCHours(23, 59, 59, 999);
 
-        const stats = await TaskModel.aggregate([
-            {
-                $match: {
-                    userId: new mongoose.Types.ObjectId(userId),
-                    startTime: { $gte: startOfDay, $lte: endOfDay }
-                }
-            },
-            {
-                $group: {
-                    _id: "$type",
-                    totalDuration: { $sum: "$duration" }
-                }
-            },
-            {
-                $project: {
-                    _id: 0,
-                    type: "$_id",
-                    totalDuration: 1
-                }
-            }
-        ]);
+    const stats = await TaskModel.aggregate([
+      {
+        $match: {
+          userId: new mongoose.Types.ObjectId(userId),
+          startTime: { $lte: endOfDay },
+          endTime: { $gte: startOfDay }
+        }
+      },
+      {
+        $group: {
+          _id: "$type",
+          totalDuration: { $sum: "$duration" }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          type: "$_id",
+          totalDuration: 1
+        }
+      }
+    ]);
 
-        res.status(200).json({ stats });
+    res.status(200).json({ stats });
 
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Internal server error" });
-    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
+
 
 const getMonthlyGenreStats=async(req,res)=>{
     try{

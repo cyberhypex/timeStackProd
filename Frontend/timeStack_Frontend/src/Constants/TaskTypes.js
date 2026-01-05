@@ -1,5 +1,5 @@
 const TASK_TYPES = {
-  EDUCATION: "study",
+  STUDY: "study",
   WORK: "work",
   SPORTS: "sports",
   LEISURE: "leisure",
