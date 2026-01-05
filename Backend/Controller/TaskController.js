@@ -133,10 +133,10 @@ const getDailyGenreStats = async (req, res) => {
     const userId = req.user.userId;
 
     const startOfDay = new Date();
-    startOfDay.setUTCHours(0, 0, 0, 0);
+    startOfDay.setHours(0, 0, 0, 0); 
 
     const endOfDay = new Date();
-    endOfDay.setUTCHours(23, 59, 59, 999);
+    endOfDay.setHours(23, 59, 59, 999);
 
     const stats = await TaskModel.aggregate([
       {
