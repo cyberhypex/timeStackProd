@@ -25,6 +25,9 @@ export function SignupPage() {
 
     const emailRegex = /^\S+@\S+\.\S+$/;
 
+    const ageNumber=Number(age);
+
+
     const handleSignup = async () => {
     if (!username.trim()) return setResponseMsg("✖ Username cannot be empty");
     if (!email.trim()) return setResponseMsg("✖ Email cannot be empty");
@@ -32,7 +35,9 @@ export function SignupPage() {
     if (!password.trim()) return setResponseMsg("✖ Password cannot be empty");
     if (password.length < 6) return setResponseMsg("✖ Password must be at least 6 characters");
     if (!age.trim()) return setResponseMsg("✖ Age cannot be empty");
-    if(age.toString().length>3 || Number(age)<=0) return setResponseMsg("✖ Please enter a valid age");
+    if (!Number.isInteger(ageNumber) || ageNumber <= 0 || ageNumber > 100) {
+         return setResponseMsg("✖ Please enter a valid age (1–100)");
+    }
 
     setLoading(true);
     setResponseMsg("");
