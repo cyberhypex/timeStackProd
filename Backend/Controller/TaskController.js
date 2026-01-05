@@ -127,81 +127,85 @@ const getTask=async(req,res)=>{
         return res.status(500).json({message:"Internal server error"});
     }
  }
-
 const getDailyGenreStats = async (req, res) => {
   try {
     const userId = req.user.userId;
 
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0); 
+    
+    const nowUTC = new Date();
+    const IST_OFFSET = 330 * 60 * 1000;
+    const nowIST = new Date(nowUTC.getTime() + IST_OFFSET);
 
-    const endOfDay = new Date();
-    endOfDay.setHours(23, 59, 59, 999);
+    
+    const year = nowIST.getFullYear();
+    const month = nowIST.getMonth();
+    const date = nowIST.getDate();
 
-    console.log("Start date",startOfDay)
-    console.log("End date",endOfDay)
+    
+    const startOfDay = new Date(Date.UTC(year, month, date, 0, -330, 0, 0));
+    const endOfDay = new Date(Date.UTC(year, month, date, 23, 29, 59, 999));
+    console.log(startOfDay,endOfDay);
 
     const stats = await TaskModel.aggregate([
-  {
-    $match: {
-      userId: new mongoose.Types.ObjectId(userId),
-      startTime: { $lte: endOfDay },
-      endTime: { $gte: startOfDay }
-    }
-  },
-  {
-    $project: {
-      type: 1,
-      effectiveStart: {
-        $cond: [
-          { $lt: ["$startTime", startOfDay] },
-          startOfDay,
-          "$startTime"
-        ]
+      {
+        $match: {
+          userId: new mongoose.Types.ObjectId(userId),
+          startTime: { $lte: endOfDay },
+          endTime: { $gte: startOfDay }
+        }
       },
-      effectiveEnd: {
-        $cond: [
-          { $gt: ["$endTime", endOfDay] },
-          endOfDay,
-          "$endTime"
-        ]
+      {
+        $project: {
+          type: 1,
+          effectiveStart: {
+            $cond: [
+              { $lt: ["$startTime", startOfDay] },
+              startOfDay,
+              "$startTime"
+            ]
+          },
+          effectiveEnd: {
+            $cond: [
+              { $gt: ["$endTime", endOfDay] },
+              endOfDay,
+              "$endTime"
+            ]
+          }
+        }
+      },
+      {
+        $project: {
+          type: 1,
+          duration: {
+            $divide: [
+              { $subtract: ["$effectiveEnd", "$effectiveStart"] },
+              60000
+            ]
+          }
+        }
+      },
+      {
+        $group: {
+          _id: "$type",
+          totalDuration: { $sum: "$duration" }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          type: "$_id",
+          totalDuration: { $round: ["$totalDuration", 0] }
+        }
       }
-    }
-  },
-  {
-    $project: {
-      type: 1,
-      duration: {
-        $divide: [
-          { $subtract: ["$effectiveEnd", "$effectiveStart"] },
-          60000
-        ]
-      }
-    }
-  },
-  {
-    $group: {
-      _id: "$type",
-      totalDuration: { $sum: "$duration" }
-    }
-  },
-  {
-    $project: {
-      _id: 0,
-      type: "$_id",
-      totalDuration: { $round: ["$totalDuration", 0] }
-    }
-  }
-]);
-
+    ]);
 
     res.status(200).json({ stats });
-
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 
 const getMonthlyGenreStats=async(req,res)=>{
