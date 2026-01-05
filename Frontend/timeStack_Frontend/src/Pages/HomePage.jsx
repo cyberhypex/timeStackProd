@@ -1,4 +1,4 @@
-import TimeStack from "../Assets/TimeStack.png";
+import TimeStack from "../assets/TimeStack.png";
 import {RaisedButton} from "../Components/RaisedButton";
 import { NavLink } from "react-router-dom"
 import { motion } from "framer-motion";
