@@ -65,7 +65,7 @@ export default function Dashboard() {
             <div className="mt-6">
                 <RaisedButton
                     text="Create New Task"
-                    onClick={() => window.location.href="/create-task"}
+                    onClick={() => navigate("/create-task")}
                 />
             </div>
         </div>
