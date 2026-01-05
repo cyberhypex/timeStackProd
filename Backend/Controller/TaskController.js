@@ -207,51 +207,90 @@ const getDailyGenreStats = async (req, res) => {
 };
 
 
+const getMonthlyGenreStats = async (req, res) => {
+  try {
+    const userId = req.user.userId;
 
-const getMonthlyGenreStats=async(req,res)=>{
-    try{
-        const userId=req.user.userId;
-        const startOfMonth=new Date();
-        startOfMonth.setUTCDate(1);
-        startOfMonth.setUTCHours(0,0,0,0);
+    const IST_OFFSET_MINUTES = 330;
 
-        const endOfMonth=new Date();
-        startOfMonth.getFullYear();
-        startOfMonth.getMonth()+1;
-        endOfMonth.setUTCHours(23,59,59,999);
-        const statsForMonth=await TaskModel.aggregate([
-            {
-                $match:{
-                    userId:new mongoose.Types.ObjectId(userId),
-                    startTime:{
-                        $gte:startOfMonth,
-                        $lte:endOfMonth
-                    }
-                }
-            },
-            {
-                $group:{
-                    _id:"$type",
-                    totalDuration:{$sum:"$duration"}
-                }
-            },
-            {
-                $project:{
-                    _id:0,
-                    type:"$_id",
-                    totalDuration:1
-                }
-            },
-            {
-                $sort:{totalDuration:1}
-            }
-        ]);
-        res.status(200).json({stats:statsForMonth});
-    }catch(err){
-        console.error(err);
-        res.status(500).json({ message: "Internal server error" });
-    }
-}
+    
+    const nowUTC = new Date();
+    const nowIST = new Date(nowUTC.getTime() + IST_OFFSET_MINUTES * 60000);
+
+    const year = nowIST.getFullYear();
+    const month = nowIST.getMonth(); 
+
+  
+    const startOfMonth = new Date(
+      Date.UTC(year, month, 1, 0, -IST_OFFSET_MINUTES, 0, 0)
+    );
+
+    const endOfMonth = new Date(
+      Date.UTC(year, month + 1, 0, 23, 59 - IST_OFFSET_MINUTES, 59, 999)
+    );
+
+    const statsForMonth = await TaskModel.aggregate([
+      {
+        $match: {
+          userId: new mongoose.Types.ObjectId(userId),
+          startTime: { $lte: endOfMonth },
+          endTime: { $gte: startOfMonth }
+        }
+      },
+      {
+        $project: {
+          type: 1,
+          effectiveStart: {
+            $cond: [
+              { $lt: ["$startTime", startOfMonth] },
+              startOfMonth,
+              "$startTime"
+            ]
+          },
+          effectiveEnd: {
+            $cond: [
+              { $gt: ["$endTime", endOfMonth] },
+              endOfMonth,
+              "$endTime"
+            ]
+          }
+        }
+      },
+      {
+        $project: {
+          type: 1,
+          duration: {
+            $divide: [
+              { $subtract: ["$effectiveEnd", "$effectiveStart"] },
+              60000
+            ]
+          }
+        }
+      },
+      {
+        $group: {
+          _id: "$type",
+          totalDuration: { $sum: "$duration" }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          type: "$_id",
+          totalDuration: { $round: ["$totalDuration", 0] }
+        }
+      },
+      {
+        $sort: { totalDuration: -1 }
+      }
+    ]);
+
+    res.status(200).json({ stats: statsForMonth });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 
 
 
