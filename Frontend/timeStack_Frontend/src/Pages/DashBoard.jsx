@@ -116,13 +116,13 @@ export default function Dashboard() {
                                 try {
                                     await api.delete(`/task/deleteTask/${task._id}`);
                                     alert("Task deleted successfully");
-                                    window.location.reload();
+                                    setTasks(prev => prev.filter(t => t._id !== task._id));
                                 } catch (err) {
                                     console.log(err);
                                     alert("Failed to delete task");
                                 }
                             }}
-                            onTaskUpdated={() => window.location.reload()}
+                           
                         />
                     ))
                 )}
