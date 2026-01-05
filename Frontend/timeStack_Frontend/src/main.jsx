@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import App from "./App";
 import HomePage from "./Pages/HomePage";
@@ -28,7 +28,7 @@ ReactDOM.createRoot(root).render(
 
       
       <Route path="/" element={<App />}>
-
+        <Route path="index.html" element={<Navigate to="/" replace/>} />
         
         <Route index element={<HomePage />} />
         <Route path="login" element={<LoginPage />} />
