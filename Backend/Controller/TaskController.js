@@ -138,28 +138,62 @@ const getDailyGenreStats = async (req, res) => {
     const endOfDay = new Date();
     endOfDay.setHours(23, 59, 59, 999);
 
+    console.log("Start date",startOfDay)
+    console.log("End date",endOfDay)
+
     const stats = await TaskModel.aggregate([
-      {
-        $match: {
-          userId: new mongoose.Types.ObjectId(userId),
-          startTime: { $lte: endOfDay },
-          endTime: { $gte: startOfDay }
-        }
+  {
+    $match: {
+      userId: new mongoose.Types.ObjectId(userId),
+      startTime: { $lte: endOfDay },
+      endTime: { $gte: startOfDay }
+    }
+  },
+  {
+    $project: {
+      type: 1,
+      effectiveStart: {
+        $cond: [
+          { $lt: ["$startTime", startOfDay] },
+          startOfDay,
+          "$startTime"
+        ]
       },
-      {
-        $group: {
-          _id: "$type",
-          totalDuration: { $sum: "$duration" }
-        }
-      },
-      {
-        $project: {
-          _id: 0,
-          type: "$_id",
-          totalDuration: 1
-        }
+      effectiveEnd: {
+        $cond: [
+          { $gt: ["$endTime", endOfDay] },
+          endOfDay,
+          "$endTime"
+        ]
       }
-    ]);
+    }
+  },
+  {
+    $project: {
+      type: 1,
+      duration: {
+        $divide: [
+          { $subtract: ["$effectiveEnd", "$effectiveStart"] },
+          60000
+        ]
+      }
+    }
+  },
+  {
+    $group: {
+      _id: "$type",
+      totalDuration: { $sum: "$duration" }
+    }
+  },
+  {
+    $project: {
+      _id: 0,
+      type: "$_id",
+      totalDuration: { $round: ["$totalDuration", 0] }
+    }
+  }
+]);
+
 
     res.status(200).json({ stats });
 
