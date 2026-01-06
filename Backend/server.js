@@ -4,6 +4,9 @@ const app=express();
 const cors=require('cors');
 app.use(cors());
 
+app.get("/health",(req,res)=>{
+    res.status(200).send("API is running...");
+})
 const dotenv=require('dotenv').config();
 const port=process.env.PORT || 5000;
 app.use(express.json());
