@@ -26,6 +26,14 @@ export default function TaskComponent({
                     <span className="mr-4">Type: {task.type}</span>
                     <span>Duration: {task.duration} min</span>
                 </div>
+                <div className="mt-2 text-sm text-blue-600 font-medium">
+                   
+                    <span>Task start date: {new Date(task.startTime).toLocaleDateString()} </span>
+                </div>
+                <div className="mt-2 text-sm text-blue-600 font-medium">
+                   
+                    <span>Task end date: {new Date(task.endTime).toLocaleDateString()} </span>
+                </div>
             </div>
 
            
