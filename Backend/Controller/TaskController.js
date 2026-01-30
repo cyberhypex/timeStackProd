@@ -1,6 +1,8 @@
 const TaskModel=require('../Models/TaskSchema');
 const mongoose=require('mongoose');
 
+const {getGeminiInsights}=require('../services/geminiService');
+
 
 const createTask = async (req, res) => {
   //  console.log("Decoded user:", req.user);
@@ -291,7 +293,155 @@ const getMonthlyGenreStats = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+const getDailyGeminiInsights = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const nowUTC = new Date();
+    const IST_OFFSET = 330 * 60 * 1000;
+    const nowIST = new Date(nowUTC.getTime() + IST_OFFSET);
+
+    const year = nowIST.getFullYear();
+    const month = nowIST.getMonth();
+    const date = nowIST.getDate();
+
+    const startOfDay = new Date(Date.UTC(year, month, date, 0, -330, 0, 0));
+    const endOfDay = new Date(Date.UTC(year, month, date, 23, 29, 59, 999));
+
+    const stats = await TaskModel.aggregate([
+      {
+        $match: {
+          userId: new mongoose.Types.ObjectId(userId),
+          startTime: { $lte: endOfDay },
+          endTime: { $gte: startOfDay }
+        }
+      },
+      {
+        $project: {
+          type: 1,
+          effectiveStart: {
+            $cond: [
+              { $lt: ["$startTime", startOfDay] },
+              startOfDay,
+              "$startTime"
+            ]
+          },
+          effectiveEnd: {
+            $cond: [
+              { $gt: ["$endTime", endOfDay] },
+              endOfDay,
+              "$endTime"
+            ]
+          }
+        }
+      },
+      {
+        $project: {
+          type: 1,
+          duration: {
+            $divide: [
+              { $subtract: ["$effectiveEnd", "$effectiveStart"] },
+              60000
+            ]
+          }
+        }
+      },
+      {
+        $group: {
+          _id: "$type",
+          totalDuration: { $sum: "$duration" }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          type: "$_id",
+          totalDuration: { $round: ["$totalDuration", 0] }
+        }
+      }
+    ]);
+
+    if (!stats.length) {
+      return res.status(200).json({
+        summary: {
+          date: nowIST.toISOString().split("T")[0],
+          totalMinutes: 0,
+          breakdown: []
+        },
+        insight: "No tasks were recorded today, so no productivity analysis is available."
+      });
+    }
+
+    const totalMinutes = stats.reduce((sum, s) => sum + s.totalDuration, 0);
+
+    const longest = stats.reduce((a, b) =>
+      a.totalDuration > b.totalDuration ? a : b
+    );
+
+    const shortest = stats.reduce((a, b) =>
+      a.totalDuration < b.totalDuration ? a : b
+    );
+
+    const summary = {
+      date: nowIST.toISOString().split("T")[0],
+      totalMinutes,
+      breakdown: stats,
+      longestCategory: longest,
+      shortestCategory: shortest
+    };
+
+    const prompt = `
+You are a productivity coach.
+
+Here is a user's DAILY activity summary in JSON:
+${JSON.stringify(summary, null, 2)}
+
+Analyze and respond with:
+1. Where most time was spent
+2. Whether that distribution is healthy
+3. Which category may be under-allocated
+4. One clear, practical improvement suggestion
+
+Rules:
+- Be specific to the data
+- No generic advice
+- No emojis
+`;
+
+    try {
+      const insight = await getGeminiInsights(prompt);
+
+      return res.status(200).json({
+        summary,
+        insight
+      });
+    } catch (err) {
+      console.error(err);
+
+      if (err.status === 503 || err.message?.includes("overloaded") || err.message?.includes("UNAVAILABLE")) {
+        return res.status(503).json({
+          summary,
+          insight: "AI service is temporarily unavailable. Please try again later."
+        });
+      }
+
+      return res.status(500).json({
+        message: "Failed to generate productivity insight"
+      });
+    }
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
 
 
 
-module.exports={createTask,updateTask,deleteTask,getAllTasks,getTask,getDailyGenreStats,getMonthlyGenreStats};
+      
+
+      
+
+
+
+module.exports={createTask,updateTask,deleteTask,getAllTasks,getTask,getDailyGenreStats,getMonthlyGenreStats,getDailyGeminiInsights};
