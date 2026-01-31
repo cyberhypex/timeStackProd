@@ -293,6 +293,158 @@ const getMonthlyGenreStats = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+const getMonthlyGeminiInsights = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const IST_OFFSET_MINUTES = 330;
+
+    const nowUTC = new Date();
+    const nowIST = new Date(nowUTC.getTime() + IST_OFFSET_MINUTES * 60000);
+
+    const year = nowIST.getFullYear();
+    const month = nowIST.getMonth();
+
+    const startOfMonth = new Date(
+      Date.UTC(year, month, 1, 0, -IST_OFFSET_MINUTES, 0, 0)
+    );
+
+    const endOfMonth = new Date(
+      Date.UTC(year, month + 1, 0, 23, 59 - IST_OFFSET_MINUTES, 59, 999)
+    );
+
+    const stats = await TaskModel.aggregate([
+      {
+        $match: {
+          userId: new mongoose.Types.ObjectId(userId),
+          startTime: { $lte: endOfMonth },
+          endTime: { $gte: startOfMonth }
+        }
+      },
+      {
+        $project: {
+          type: 1,
+          effectiveStart: {
+            $cond: [
+              { $lt: ["$startTime", startOfMonth] },
+              startOfMonth,
+              "$startTime"
+            ]
+          },
+          effectiveEnd: {
+            $cond: [
+              { $gt: ["$endTime", endOfMonth] },
+              endOfMonth,
+              "$endTime"
+            ]
+          }
+        }
+      },
+      {
+        $project: {
+          type: 1,
+          duration: {
+            $divide: [
+              { $subtract: ["$effectiveEnd", "$effectiveStart"] },
+              60000
+            ]
+          }
+        }
+      },
+      {
+        $group: {
+          _id: "$type",
+          totalDuration: { $sum: "$duration" }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          type: "$_id",
+          totalDuration: { $round: ["$totalDuration", 0] }
+        }
+      }
+    ]);
+
+    if (!stats.length) {
+      return res.status(200).json({
+        summary: {
+          month: `${year}-${String(month + 1).padStart(2, "0")}`,
+          totalMinutes: 0,
+          breakdown: []
+        },
+        insight: "No tasks were recorded this month, so no productivity analysis is available."
+      });
+    }
+
+    const totalMinutes = stats.reduce((sum, s) => sum + s.totalDuration, 0);
+
+    const longest = stats.reduce((a, b) =>
+      a.totalDuration > b.totalDuration ? a : b
+    );
+
+    const shortest = stats.reduce((a, b) =>
+      a.totalDuration < b.totalDuration ? a : b
+    );
+
+    const summary = {
+      month: `${year}-${String(month + 1).padStart(2, "0")}`,
+      totalMinutes,
+      breakdown: stats,
+      longestCategory: longest,
+      shortestCategory: shortest
+    };
+
+    const prompt = `
+You are a productivity coach.
+
+Here is a user's MONTHLY activity summary in JSON:
+${JSON.stringify(summary, null, 2)}
+
+Analyze and respond with:
+1. Overall time distribution across the month
+2. Whether the balance between work, rest, and activity is sustainable
+3. Any long-term imbalance or risk pattern
+4. One clear, practical improvement suggestion for the next month
+
+Rules:
+- Be specific to the data
+- Focus on trends, not single-day behavior
+- No generic advice
+- No emojis
+`;
+
+    try {
+      const insight = await getGeminiInsights(prompt);
+
+      return res.status(200).json({
+        summary,
+        insight
+      });
+    } catch (err) {
+      console.error(err);
+
+      if (
+        err.status === 503 ||
+        err.message?.includes("overloaded") ||
+        err.message?.includes("UNAVAILABLE")
+      ) {
+        return res.status(503).json({
+          summary,
+          insight: "AI service is temporarily unavailable. Please try again later."
+        });
+      }
+
+      return res.status(500).json({
+        message: "Failed to generate monthly productivity insight"
+      });
+    }
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 const getDailyGeminiInsights = async (req, res) => {
   try {
     const userId = req.user.userId;
@@ -444,4 +596,4 @@ Rules:
 
 
 
-module.exports={createTask,updateTask,deleteTask,getAllTasks,getTask,getDailyGenreStats,getMonthlyGenreStats,getDailyGeminiInsights};
+module.exports={createTask,updateTask,deleteTask,getAllTasks,getTask,getDailyGenreStats,getMonthlyGenreStats,getDailyGeminiInsights,getMonthlyGeminiInsights}

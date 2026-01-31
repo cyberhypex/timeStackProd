@@ -4,6 +4,8 @@ const app=express();
 const cors=require('cors');
 app.use(cors());
 
+
+
 app.get("/health",(req,res)=>{
     res.status(200).send("API is running...");
 })
