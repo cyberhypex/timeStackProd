@@ -70,11 +70,7 @@ With an intuitive UI and a powerful backend, it enables efficient task tracking,
 
 ---
 
-## 🌱 Upcoming Features
 
-- 🤖 AI-based task suggestions  
-- 📈 Productivity insights & trends  
-- 🔔 Smart reminders and alerts  
 
 ---
 
