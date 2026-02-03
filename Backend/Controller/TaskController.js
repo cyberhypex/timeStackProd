@@ -371,7 +371,9 @@ const getMonthlyGeminiInsights = async (req, res) => {
         summary: {
           month: `${year}-${String(month + 1).padStart(2, "0")}`,
           totalMinutes: 0,
-          breakdown: []
+          breakdown: [],
+          longestCategory: null,
+          shortestCategory: null
         },
         insight: "No tasks were recorded this month, so no productivity analysis is available."
       });
@@ -518,7 +520,9 @@ const getDailyGeminiInsights = async (req, res) => {
         summary: {
           date: nowIST.toISOString().split("T")[0],
           totalMinutes: 0,
-          breakdown: []
+          breakdown: [],
+          longestCategory: null,
+          shortestCategory: null
         },
         insight: "No tasks were recorded today, so no productivity analysis is available."
       });
