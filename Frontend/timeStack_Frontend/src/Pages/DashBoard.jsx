@@ -68,6 +68,19 @@ export default function Dashboard() {
                     onClick={() => navigate("/create-task")}
                 />
             </div>
+            <div className="mt-6">
+                <RaisedButton
+                    text="Daily AI Insights"
+                    onClick={() => navigate("/daily-ai-insights")}
+                />
+            </div>
+            <div className="mt-6">
+                <RaisedButton
+                    text="Monthly AI Insights"
+                    onClick={() => navigate("/monthly-ai-insights")}
+                />
+            </div>
+
         </div>
 
       
