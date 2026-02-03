@@ -3,9 +3,8 @@ import { RaisedButton } from "../Components/RaisedButton";
 import { FaBrain } from "react-icons/fa";
 import api from "../axios";
 
-
-export  function MonthlyAIInsights() {
-    const [loading, setLoading] = useState(false);
+export function MonthlyAIInsights() {
+  const [loading, setLoading] = useState(false);
   const [insight, setInsight] = useState(null);
   const [summary, setSummary] = useState(null);
   const [error, setError] = useState(null);
@@ -80,21 +79,25 @@ export  function MonthlyAIInsights() {
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-              <div className="p-4 rounded-lg bg-blue-100 text-blue-800">
-                <p className="font-semibold">Most Time Spent</p>
-                <p className="capitalize">
-                  {summary.longestCategory.type} –{" "}
-                  {summary.longestCategory.totalDuration} min
-                </p>
-              </div>
+              {summary.longestCategory && (
+                <div className="p-4 rounded-lg bg-blue-100 text-blue-800">
+                  <p className="font-semibold">Most Time Spent</p>
+                  <p className="capitalize">
+                    {summary.longestCategory.type} –{" "}
+                    {summary.longestCategory.totalDuration} min
+                  </p>
+                </div>
+              )}
 
-              <div className="p-4 rounded-lg bg-red-100 text-red-800">
-                <p className="font-semibold">Least Time Spent</p>
-                <p className="capitalize">
-                  {summary.shortestCategory.type} –{" "}
-                  {summary.shortestCategory.totalDuration} min
-                </p>
-              </div>
+              {summary.shortestCategory && (
+                <div className="p-4 rounded-lg bg-red-100 text-red-800">
+                  <p className="font-semibold">Least Time Spent</p>
+                  <p className="capitalize">
+                    {summary.shortestCategory.type} –{" "}
+                    {summary.shortestCategory.totalDuration} min
+                  </p>
+                </div>
+              )}
             </div>
 
             <ul className="space-y-2">
@@ -112,37 +115,34 @@ export  function MonthlyAIInsights() {
         )}
 
         {insight && (
-        <div className="mt-6 bg-white rounded-xl p-5 sm:p-6 shadow-md">
+          <div className="mt-6 bg-white rounded-xl p-5 sm:p-6 shadow-md">
             <h2 className="text-lg sm:text-xl font-bold text-blue-600 mb-5">
-            AI Insight
+              AI Insight
             </h2>
 
             <div className="space-y-4">
-            {insight
+              {insight
                 .split(/\n\n(?=\d+\.)/)
                 .map((section, index) => {
-                const [titleLine, ...rest] = section.split("\n");
-                return (
+                  const [titleLine, ...rest] = section.split("\n");
+                  return (
                     <div
-                    key={index}
-                    className="p-4 rounded-lg bg-blue-50 border border-blue-200"
+                      key={index}
+                      className="p-4 rounded-lg bg-blue-50 border border-blue-200"
                     >
-                    <p className="font-semibold text-blue-700 mb-2">
+                      <p className="font-semibold text-blue-700 mb-2">
                         {titleLine}
-                    </p>
-                    <p className="text-gray-700 text-sm sm:text-base leading-relaxed">
+                      </p>
+                      <p className="text-gray-700 text-sm sm:text-base leading-relaxed">
                         {rest.join(" ")}
-                    </p>
+                      </p>
                     </div>
-                );
+                  );
                 })}
             </div>
-        </div>
+          </div>
         )}
-
       </div>
     </div>
   );
-
-   
 }

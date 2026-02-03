@@ -144,8 +144,12 @@ const getDailyGenreStats = async (req, res) => {
     const date = nowIST.getDate();
 
     
-    const startOfDay = new Date(Date.UTC(year, month, date, 0, -330, 0, 0));
-    const endOfDay = new Date(Date.UTC(year, month, date, 23, 29, 59, 999));
+    const startOfDayIST = new Date(year, month, date, 0, 0, 0, 0);
+  const endOfDayIST   = new Date(year, month, date, 23, 59, 59, 999);
+
+const startOfDay = new Date(startOfDayIST.getTime() - IST_OFFSET);
+const endOfDay   = new Date(endOfDayIST.getTime() - IST_OFFSET);
+
     console.log(startOfDay,endOfDay);
 
     const stats = await TaskModel.aggregate([
