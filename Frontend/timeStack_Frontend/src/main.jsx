@@ -15,6 +15,7 @@ import ProtectedRoutes from "./Pages/ProtectedRoutes";
 import { DailyAIInsights } from "./Pages/DailyAIInsights";
 import EditTaskPage from "./Pages/EditTasks";
 import DashBoard from "./Pages/DashBoard";
+import { MonthlyAIInsights } from "./Pages/MonthlyAIInsights";
 import NotFound from "./Pages/NotFound";
 
 
@@ -41,6 +42,7 @@ ReactDOM.createRoot(root).render(
         <Route path="/create-task" element={<CreateTaskPage />} />
         <Route path="/edit-task/:taskId" element={<EditTaskPage />} />
         <Route path="/daily-ai-insights" element={<DailyAIInsights />} />
+        <Route path="/monthly-ai-insights" element={<MonthlyAIInsights />} />
         </Route>
         <Route path='*' element={<NotFound />} />
 

@@ -111,33 +111,33 @@ export function DailyAIInsights() {
         )}
 
         {insight && (
-  <div className="mt-6 bg-white rounded-xl p-5 sm:p-6 shadow-md">
-    <h2 className="text-lg sm:text-xl font-bold text-blue-600 mb-5">
-      AI Insight
-    </h2>
+        <div className="mt-6 bg-white rounded-xl p-5 sm:p-6 shadow-md">
+            <h2 className="text-lg sm:text-xl font-bold text-blue-600 mb-5">
+            AI Insight
+            </h2>
 
-    <div className="space-y-4">
-      {insight
-        .split(/\n\n(?=\d+\.)/)
-        .map((section, index) => {
-          const [titleLine, ...rest] = section.split("\n");
-          return (
-            <div
-              key={index}
-              className="p-4 rounded-lg bg-blue-50 border border-blue-200"
-            >
-              <p className="font-semibold text-blue-700 mb-2">
-                {titleLine}
-              </p>
-              <p className="text-gray-700 text-sm sm:text-base leading-relaxed">
-                {rest.join(" ")}
-              </p>
+            <div className="space-y-4">
+            {insight
+                .split(/\n\n(?=\d+\.)/)
+                .map((section, index) => {
+                const [titleLine, ...rest] = section.split("\n");
+                return (
+                    <div
+                    key={index}
+                    className="p-4 rounded-lg bg-blue-50 border border-blue-200"
+                    >
+                    <p className="font-semibold text-blue-700 mb-2">
+                        {titleLine}
+                    </p>
+                    <p className="text-gray-700 text-sm sm:text-base leading-relaxed">
+                        {rest.join(" ")}
+                    </p>
+                    </div>
+                );
+                })}
             </div>
-          );
-        })}
-    </div>
-  </div>
-)}
+        </div>
+        )}
 
       </div>
     </div>
