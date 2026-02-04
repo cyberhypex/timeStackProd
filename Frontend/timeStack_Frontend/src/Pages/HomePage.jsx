@@ -137,7 +137,7 @@ export default function HomePage() {
                         {
                             title: "Productivity Insights",
                             icon: <FaBrain className="text-white text-4xl" />,
-                            desc: "AI-backed suggestions to improve your time efficiency. Coming Soon...."
+                            desc: "AI-backed suggestions to improve your time efficiency."
                         }
                     ].map((card, index) => (
                         <motion.div
