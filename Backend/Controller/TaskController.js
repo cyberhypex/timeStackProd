@@ -455,16 +455,26 @@ const getDailyGeminiInsights = async (req, res) => {
   try {
     const userId = req.user.userId;
 
+    // Get current time in IST
     const nowUTC = new Date();
     const IST_OFFSET = 330 * 60 * 1000;
     const nowIST = new Date(nowUTC.getTime() + IST_OFFSET);
 
+    // Extract date components from IST time
     const year = nowIST.getFullYear();
     const month = nowIST.getMonth();
     const date = nowIST.getDate();
 
-    const startOfDay = new Date(Date.UTC(year, month, date, 0, -330, 0, 0));
-    const endOfDay = new Date(Date.UTC(year, month, date, 23, 29, 59, 999));
+    // Create start/end of day in IST (as if we're in IST timezone)
+    const startOfDayIST = new Date(year, month, date, 0, 0, 0, 0);
+    const endOfDayIST = new Date(year, month, date, 23, 59, 59, 999);
+
+    // Convert back to UTC for MongoDB query
+    const startOfDay = new Date(startOfDayIST.getTime() - IST_OFFSET);
+    const endOfDay = new Date(endOfDayIST.getTime() - IST_OFFSET);
+
+    console.log("Query range (UTC):", startOfDay, endOfDay);
+    console.log("User ID:", userId);
 
     const stats = await TaskModel.aggregate([
       {
@@ -518,6 +528,8 @@ const getDailyGeminiInsights = async (req, res) => {
         }
       }
     ]);
+
+    console.log("Stats found:", stats);
 
     if (!stats.length) {
       return res.status(200).json({
@@ -576,7 +588,7 @@ Rules:
         insight
       });
     } catch (err) {
-      console.error(err);
+      console.error("Gemini API error:", err);
 
       if (err.status === 503 || err.message?.includes("overloaded") || err.message?.includes("UNAVAILABLE")) {
         return res.status(503).json({
@@ -586,12 +598,13 @@ Rules:
       }
 
       return res.status(500).json({
-        message: "Failed to generate productivity insight"
+        summary,
+        insight: "Failed to generate productivity insight, but here's your summary."
       });
     }
 
   } catch (err) {
-    console.error(err);
+    console.error("Server error:", err);
     return res.status(500).json({ message: "Internal server error" });
   }
 };

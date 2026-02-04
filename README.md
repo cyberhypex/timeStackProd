@@ -2,7 +2,7 @@
 
 **TimeStack** is a modern, full-stack **time-tracking and productivity web application** that helps users **create, track, and analyze tasks** to improve daily efficiency — all through a clean and intuitive interface.
 
-> 🚀 *Advanced features with AI-powered productivity suggestions coming soon.*
+> 🚀 *Advanced features with AI-powered productivity suggestions based on Gemini AI.*
 
 🌐 **Live Demo:**  
 👉 https://clinquant-otter-ee944c.netlify.app/
@@ -66,14 +66,11 @@ With an intuitive UI and a powerful backend, it enables efficient task tracking,
 - **Express.js**
 - **MongoDB Atlas**
 - **JWT Authentication**
+- **GEMINI AI**
 
 ---
 
-## 🌱 Upcoming Features
 
-- 🤖 AI-based task suggestions  
-- 📈 Productivity insights & trends  
-- 🔔 Smart reminders and alerts  
 
 ---
 
