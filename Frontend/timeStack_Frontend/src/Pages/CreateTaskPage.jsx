@@ -44,8 +44,8 @@ export default function CreateTaskPage() {
                 title,
                 description,
                 type,         
-                startTime,
-                endTime
+                startTime:start.toISOString(),
+                endTime:end.toISOString()
             });
 
             setResponseMsg("✔ Task created successfully");

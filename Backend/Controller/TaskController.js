@@ -30,7 +30,7 @@ const createTask = async (req, res) => {
             message: "Task created successfully",
             task: newTask
         });
-
+        console.log("Received time:", newTask.startTime);
     } catch (err) {
         console.error(err);
         return res.status(500).json({ message: "Internal server error" });
